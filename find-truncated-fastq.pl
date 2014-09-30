@@ -36,14 +36,12 @@ sub is_fq_truncated {
 
     my $trunc = 0;
 
-    if ( defined $seq_header ) {
-        $trunc++
-            if $seq_header !~ /^@/
-            || $qual_header !~ /^\+/
-            || length $sequence != length $qual_scores
-            || $sequence !~ /[ACGTN]+/gi;
-    }
-    else { $trunc++ }
+    $trunc++
+        if !defined $seq_header
+        || $seq_header !~ /^@/
+        || $qual_header !~ /^\+/
+        || length $sequence != length $qual_scores
+        || $sequence !~ /[ACGTN]+/gi;
 
     return $trunc;
 }
