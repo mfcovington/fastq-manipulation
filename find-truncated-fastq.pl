@@ -13,16 +13,14 @@ use File::Find;
 use File::ReadBackwards;
 
 my @directories = @ARGV;
-find( \&wanted, @directories );
+find( \&report_truncated_fq, @directories );
 
 exit;
 
-sub wanted {
+sub report_truncated_fq {
     return unless /.+\.f(?:ast)?q$/i;
     return if -z;
-    my $trunc   = is_fq_truncated($_);
-    my $fq_path = abs_path($_);
-    say $fq_path if $trunc;
+    say abs_path($_) if is_fq_truncated($_);
 }
 
 sub is_fq_truncated {
