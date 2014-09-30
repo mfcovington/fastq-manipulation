@@ -8,33 +8,41 @@ use strict;
 use warnings;
 use autodie;
 use feature 'say';
+use Cwd 'abs_path';
+use File::Find;
 use File::ReadBackwards;
 
-my $fq = $ARGV[0];
-my $bw = File::ReadBackwards->new($fq) or die "Can't open/read $fq: $!";
+my @directories = @ARGV;
+find( \&wanted, @directories );
 
-my $qual_scores = $bw->readline;
-my $qual_header = $bw->readline;
-my $sequence    = $bw->readline;
-my $seq_header  = $bw->readline;
+exit;
 
-my $trunc = 0;
-
-if ( defined $seq_header ) {
-
-    $trunc++
-        if $seq_header !~ /^@/
-        || $qual_header !~ /^\+/
-        || length $sequence != length $qual_scores
-        || $sequence !~ /[ACGTN]+/gi;
+sub wanted {
+    return unless /.+\.f(?:ast)?q$/i;
+    my $trunc   = is_fq_truncated($_);
+    my $fq_path = abs_path("$File::Find::dir/$_");
+    say $fq_path if $trunc;
 }
-else { $trunc++ }
 
-print <<EOF;
-Final Read:
-seq_header   -  $seq_header
-sequence     -  $sequence
-qual_header  -  $qual_header
-qual_scores  -  $qual_scores
-TRUNCATED?   -  $trunc
-EOF
+sub is_fq_truncated {
+    my $fq = shift;
+    my $bw = File::ReadBackwards->new($fq) or die "Can't open/read $fq: $!";
+
+    my $qual_scores = $bw->readline;
+    my $qual_header = $bw->readline;
+    my $sequence    = $bw->readline;
+    my $seq_header  = $bw->readline;
+
+    my $trunc = 0;
+
+    if ( defined $seq_header ) {
+        $trunc++
+            if $seq_header !~ /^@/
+            || $qual_header !~ /^\+/
+            || length $sequence != length $qual_scores
+            || $sequence !~ /[ACGTN]+/gi;
+    }
+    else { $trunc++ }
+
+    return $trunc;
+}
