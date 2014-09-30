@@ -21,7 +21,7 @@ sub wanted {
     return unless /.+\.f(?:ast)?q$/i;
     return if -z;
     my $trunc   = is_fq_truncated($_);
-    my $fq_path = abs_path("$File::Find::dir/$_");
+    my $fq_path = abs_path($_);
     say $fq_path if $trunc;
 }
 
